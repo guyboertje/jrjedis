@@ -1,0 +1,21 @@
+PATH
+  remote: .
+  specs:
+    jrjedis (0.1.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    benchmark-ips (2.2.0)
+    rake (10.4.2)
+    redis (3.2.1)
+
+PLATFORMS
+  java
+
+DEPENDENCIES
+  benchmark-ips
+  bundler (~> 1.8)
+  jrjedis!
+  rake (~> 10.0)
+  redis
