@@ -3,8 +3,8 @@ unless RUBY_PLATFORM =~ /java/
   exit 255
 end
 
-require_relative "jars/jrjedis-1.0.2.jar"
-# require_relative "linked/jrjedis-1.0.2.jar"
+require_relative "jars/jrjedis-1.0.3.jar"
+# require_relative "linked/jrjedis-1.0.3.jar"
 
 require 'com/jrjedis/jrjedis'
 

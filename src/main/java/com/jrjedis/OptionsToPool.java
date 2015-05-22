@@ -2,9 +2,8 @@ package com.jrjedis;
 
 import org.jruby.Ruby;
 import org.jruby.RubyHash;
-import org.jruby.RubyNumeric;
 import org.jruby.runtime.builtin.IRubyObject;
-import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisBinaryPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 /**
@@ -18,16 +17,16 @@ public class OptionsToPool {
     private static final int POOLSIZE = 32;
 //    private static final int CONNECTTIMEOUT = 5;
 
-    public static JedisPool newPool(Ruby ruby, IRubyObject options) {
+    public static JedisBinaryPool newPool(Ruby ruby, IRubyObject options) {
         JedisPoolConfig poolConfig = new JedisPoolConfig();
         poolConfig.setMaxTotal(POOLSIZE);
 
         if (options == null || !(options instanceof RubyHash)) {
-            return new JedisPool(poolConfig, HOST);
+            return new JedisBinaryPool(poolConfig, HOST);
         }
         RubyHash hash = (RubyHash) options;
         if (hash.isEmpty()) {
-            return new JedisPool(poolConfig, HOST);
+            return new JedisBinaryPool(poolConfig, HOST);
         }
 
         String host;
@@ -61,12 +60,12 @@ public class OptionsToPool {
         }
 
         // jedis master has a constructor that includes a connectionTimeout
-        return new JedisPool(poolConfig, host, port, timeout, password, db, clientName); //jedis 2.7.2 has this constructor
+        return new JedisBinaryPool(poolConfig, host, port, timeout, password, db, clientName); //jedis 2.7.2 has this constructor
    }
 
 }
 
-//public JedisPool(final GenericObjectPoolConfig poolConfig, final String host, int port,
+//public JedisBinaryPool(final GenericObjectPoolConfig poolConfig, final String host, int port,
 //      final int connectionTimeout, final int soTimeout, final String password, final int database,
 //      final String clientName) {
 //

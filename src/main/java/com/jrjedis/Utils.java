@@ -3,6 +3,7 @@ package com.jrjedis;
 import org.jruby.Ruby;
 import org.jruby.RubyHash;
 import org.jruby.RubyNumeric;
+import org.jruby.RubyString;
 import org.jruby.runtime.builtin.IRubyObject;
 
 /**
@@ -22,11 +23,23 @@ public class Utils {
         return ruby.newString(str);
     }
 
+    public static IRubyObject stringify(Ruby ruby, byte [] str) {
+        return RubyString.newString(ruby, str);
+    }
+
     public static String toStr(IRubyObject val, String alt) {
         if (val.isNil()) {
             return alt;
         }
         return val.toString();
+    }
+
+    public static byte [] toBytes(IRubyObject val) {
+        if (val instanceof RubyString) {
+            RubyString str = (RubyString)val;
+            return str.getBytes();
+        }
+        return val.toString().getBytes();
     }
 
     public static int toInt(IRubyObject val, int alt) {
@@ -36,6 +49,8 @@ public class Utils {
         int v = RubyNumeric.num2int(val);
         return v == 0 ? alt : v;
     }
+
+
 
     public static IRubyObject hashARef(Ruby ruby, RubyHash hash, String symbol) {
         IRubyObject value = hash.fastARef(ruby.newSymbol(symbol));
