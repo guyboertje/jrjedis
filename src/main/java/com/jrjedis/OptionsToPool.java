@@ -5,45 +5,54 @@ import org.jruby.RubyHash;
 import org.jruby.runtime.builtin.IRubyObject;
 import redis.clients.jedis.JedisBinaryPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.Protocol;
 
 /**
  *
  * @author guy
  */
 public class OptionsToPool {
-    private static final String HOST = "127.0.0.1";
-    private static final int PORT = 6379;
-    private static final int TIMEOUT = 5;
+
     private static final int POOLSIZE = 32;
-//    private static final int CONNECTTIMEOUT = 5;
+    private static final double TIMEOUT = 5.0;
+//    private static final double CONNECTTIMEOUT = 5.0;
 
     public static JedisBinaryPool newPool(Ruby ruby, IRubyObject options) {
+        return newPool(ruby, options, Protocol.DEFAULT_DATABASE);
+    }
+
+    public static JedisBinaryPool newPool(Ruby ruby, IRubyObject options, int db) {
         JedisPoolConfig poolConfig = new JedisPoolConfig();
         poolConfig.setMaxTotal(POOLSIZE);
+        int timeout = (int)(1000.0 * TIMEOUT);
 
         if (options == null || !(options instanceof RubyHash)) {
-            return new JedisBinaryPool(poolConfig, HOST);
+           return new JedisBinaryPool(poolConfig, Protocol.DEFAULT_HOST, Protocol.DEFAULT_PORT,
+                    timeout, null, db, null);
         }
-        RubyHash hash = (RubyHash) options;
+
+        RubyHash hash = (RubyHash)options;
         if (hash.isEmpty()) {
-            return new JedisBinaryPool(poolConfig, HOST);
+            return new JedisBinaryPool(poolConfig, Protocol.DEFAULT_HOST, Protocol.DEFAULT_PORT,
+                    timeout, null, db, null);
         }
 
         String host;
         int port;
-        int timeout;
+
 //        int connectionTimeout;
         String password = null;
-        int db;
         String clientName = null;
         int poolSize;
 
-        host = Utils.toStr(Utils.hashARef(ruby, hash, "host"), HOST);
-        port = Utils.toInt(Utils.hashARef(ruby, hash, "port"), PORT);
-        int rto = Utils.toInt(Utils.hashARef(ruby, hash, "read_timeout"), TIMEOUT);
-        timeout = Utils.toInt(Utils.hashARef(ruby, hash, "timeout"), rto);
+        double tempTimeout;
+
+        host = Utils.toStr(Utils.hashARef(ruby, hash, "host"), Protocol.DEFAULT_HOST);
+        port = Utils.toInt(Utils.hashARef(ruby, hash, "port"), Protocol.DEFAULT_PORT);
+        tempTimeout = Utils.toDouble(Utils.hashARef(ruby, hash, "read_timeout"), TIMEOUT);
+        tempTimeout = Utils.toDouble(Utils.hashARef(ruby, hash, "timeout"), tempTimeout);
 //        connectionTimeout = Utils.toInt(Utils.hashARef(ruby, hash, "connect_timeout"), CONNECTTIMEOUT);
-        db = Utils.toInt(Utils.hashARef(ruby, hash, "db"), 0);
+        timeout = (int)(1000.0 * tempTimeout);
         poolSize = Utils.toInt(Utils.hashARef(ruby, hash, "pool_size"), POOLSIZE);
 
         poolConfig = new JedisPoolConfig();
