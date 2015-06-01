@@ -1,5 +1,6 @@
 package com.jrjedis;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -7,6 +8,7 @@ import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyHash;
 import org.jruby.RubyNumeric;
+import org.jruby.RubyObject;
 import org.jruby.RubyString;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -116,14 +118,6 @@ public class Utils {
 
     // towards java -------------------------------------------
 
-    public static IRubyObject[] restArgs(int num, IRubyObject[] args) {
-        int len = args.length;
-        int rest = len - num;
-        IRubyObject[] newargs = new IRubyObject[rest];
-        System.arraycopy(args, num, newargs, 0, rest);
-        return newargs;
-    }
-
     public static IRubyObject[] hashToArrayIRubyObject(ThreadContext ctx, RubyHash hash) {
         RubyArray ary = (RubyArray) ((RubyHash) hash).to_a().flatten_bang(ctx);
         return ary.toJavaArray();
@@ -132,6 +126,53 @@ public class Utils {
     public static byte[][] hashToArrayBytes(ThreadContext ctx, RubyHash hash) {
         RubyArray ary = (RubyArray) ((RubyHash) hash).to_a().flatten_bang(ctx);
         return toArrayBytes(ary.toJavaArray());
+    }
+    public static byte[][] toArrayBytes(IRubyObject arg) {
+        // caller should flatten first
+        if (arg.isNil()) {
+            return new byte[0][0];
+        }
+        if (arg instanceof RubyArray) {
+            return toArrayBytes((RubyArray)arg);
+        }
+        return new byte[][]{toBytes(arg)};
+    }
+
+    public static byte[][] toFlatArrayBytes(ThreadContext ctx, IRubyObject[] args) {
+        return toFlatArrayBytes(ctx, RubyArray.newArray(ctx.runtime, args));
+    }
+
+    public static byte[][] toFlatArrayBytes(ThreadContext ctx, RubyArray arg) {
+        return toArrayBytes((RubyArray)arg.flatten(ctx));
+    }
+
+    public static byte[][] toArrayBytes(RubyArray arg) {
+
+        if (arg.isEmpty()) {
+            return new byte[0][0];
+        }
+
+        byte[][] result = new byte[arg.size()][];
+
+        for (int i = 0; i < result.length; ++i) {
+            result[i] = toBytes(arg.entry(i));
+        }
+        return result;
+    }
+
+    public static void toArrayBytes(IRubyObject[] args, ArrayList<byte[]> varargs) {
+        if (args.length == 0) {
+            return;
+        }
+        for (IRubyObject elm : args) {
+            if (elm instanceof RubyArray) {
+                toArrayBytes(((RubyArray)elm).toJavaArray(), varargs);
+            } else if (elm == null || elm.isNil()) {
+                // do nothing
+            } else {
+                varargs.add(toBytes(elm));
+            }
+        }
     }
 
     public static byte[][] toArrayBytes(IRubyObject[] args) {
@@ -193,14 +234,17 @@ public class Utils {
     public static byte[] toBytes(IRubyObject val) {
         if (val instanceof RubyString) {
             return ((RubyString)val).getBytes();
+        } else {
+            RubyString str = (RubyString)((RubyObject)val).to_s();
+            return str.getBytes();
         }
-        return val.toString().getBytes();
     }
 
     public static byte[] toBytes(IRubyObject val, byte[] alt) {
         if (val.isNil()) {
             return alt;
         }
+
         if (val instanceof RubyString) {
             RubyString str = (RubyString)val;
             return str.getBytes();
@@ -233,6 +277,11 @@ public class Utils {
 
     public static long toLong(IRubyObject val) {
         return RubyNumeric.num2long(val);
+    }
+
+    public static boolean toBool(IRubyObject val) {
+        int v = RubyNumeric.num2int(val);
+        return (v == 1);
     }
 
     public static IRubyObject hashARef(Ruby ruby, RubyHash hash, String symbol) {

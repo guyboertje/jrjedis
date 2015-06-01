@@ -8,7 +8,7 @@ import java.util.List;
 public class BitPosParams {
   private List<byte[]> params = new ArrayList<byte[]>();
 
-  protected BitPosParams() {
+  public BitPosParams() {
   }
 
   public BitPosParams(long start) {
