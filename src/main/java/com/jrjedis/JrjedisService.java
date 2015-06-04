@@ -27,6 +27,9 @@ public class JrjedisService implements BasicLibraryService {
         RubyClass jrRedis = root.defineClassUnder("Redis", runtime.getObject(), JrRedis.JRREDIS_ALLOCATOR);
         jrRedis.defineAnnotatedMethods(JrRedis.class);
 
+        RubyClass jrClient = root.defineClassUnder("Client", runtime.getObject(), JrClient.JRCLIENT_ALLOCATOR);
+        jrClient.defineAnnotatedMethods(JrClient.class);
+
         return true;
     }
 }
